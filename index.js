@@ -1,3 +1,4 @@
+const { response } = require("express");
 const express = require("express");
 const app = express();
 app.use(express.json());
@@ -53,13 +54,19 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 app.post("/api/persons/", (req, res) => {
   const newId = Math.random() * 9999;
-  console.log("post request");
 
+  if (!req.body.name || !req.body.number) {
+    return res
+      .status(400)
+      .json({ error: "Name or number missing from post request" });
+  }
+  if (taulukko.some((a) => a.name.includes(req.body.name))) {
+    return res.status(400).json({ error: "name already in phonebook" });
+  }
   const person = req.body;
   person.id = newId;
-  console.log(person);
   taulukko = taulukko.concat(person);
-  console.log(taulukko.length);
+  res.json(person);
 
   //
 });

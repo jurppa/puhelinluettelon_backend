@@ -4,6 +4,8 @@ const app = express();
 const morgan = require("morgan");
 app.use(express.json());
 
+const cors = require("cors");
+app.use(cors());
 app.use(
   morgan(":method :url :status :res[content-length] :response-time ms :body")
 );
@@ -58,11 +60,9 @@ app.get("/api/persons/:id", (req, res) => {
 });
 // Delete person
 app.delete("/api/persons/:id", (req, res) => {
-  console.log("delete request");
   const id = Number(req.params.id);
   filteredPersons = taulukko.filter((person) => person.id !== id);
 
-  console.log(filteredPersons);
   res.status(204).end();
 });
 // Post person
@@ -70,6 +70,9 @@ app.post("/api/persons/", (req, res) => {
   const newId = Math.random() * 9999;
 
   if (!req.body.name || !req.body.number) {
+    console.log(req.body);
+
+    console.log("errori");
     return res
       .status(400)
       .json({ error: "Name or number missing from post request" });
@@ -80,6 +83,7 @@ app.post("/api/persons/", (req, res) => {
   const person = req.body;
   person.id = newId;
   taulukko = taulukko.concat(person);
+  console.log(taulukko.length);
   res.json(person);
 
   //
@@ -91,7 +95,7 @@ app.get("/info", (req, res) => {
     `Phonebook has info for ${taulukko.length} people <br><br> ${dateNow}`
   );
 });
-const port = 3001;
+const PORT = process.env.PORT || 3001;
 
-app.listen(port);
-console.log(`Server started, listening port ${port}`);
+app.listen(PORT);
+console.log(`Server started, listening port ${PORT}`);

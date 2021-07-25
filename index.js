@@ -1,7 +1,20 @@
 const { response } = require("express");
 const express = require("express");
 const app = express();
+const morgan = require("morgan");
 app.use(express.json());
+
+app.use(
+  morgan(":method :url :status :res[content-length] :response-time ms :body")
+);
+morgan.token("body", function (req, res) {
+  console.log(req.method);
+  if (req.method !== "POST") {
+    return null;
+  } else {
+    return JSON.stringify(req.body);
+  }
+});
 let taulukko = [
   {
     id: 1,
@@ -52,6 +65,7 @@ app.delete("/api/persons/:id", (req, res) => {
   console.log(filteredPersons);
   res.status(204).end();
 });
+// Post person
 app.post("/api/persons/", (req, res) => {
   const newId = Math.random() * 9999;
 

@@ -10,13 +10,25 @@ app.use(
   morgan(":method :url :status :res[content-length] :response-time ms :body")
 );
 app.use(express.static("build"));
+
 const Person = require("./models/person");
+// Error handler
+
+const errorHandler = (error, request, response, next) => {
+  console.log("Logattu errorhandlerissa " + error.message);
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else {
+    return response.status(400).send(error);
+  }
+  next(error);
+};
 morgan.token("body", function (req, res) {
   console.log(req.method);
   if (req.method !== "POST") {
     return null;
   } else {
-    return JSON.stringify(req.body);
+    return JSON.stringify(req.body.data);
   }
 });
 let taulukko = [
@@ -44,53 +56,44 @@ let taulukko = [
   },
 ];
 // Returns all persons
-app.get("/api/persons", (req, res) => {
+app.get("/api/persons", (req, res, next) => {
   Person.find({})
     .then((persons) => {
-      console.log(persons);
       res.json(persons);
     })
-    .catch((error) => console.log(error));
+    .catch((error) => next("Error in get all: " + error));
 });
 // Get with id
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   const id = Number(req.params.id);
-
-  const person = taulukko.find((person) => person.id === id);
-  console.log(id + " " + person.name);
-
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+  console.log("request id:llä: " + id);
+  Person.findById(req.params.id).then((person) => {
+    if (person) {
+      res.json(person);
+    } else {
+      res.status(404).end;
+    }
+  });
 });
-// Delete person
-/* app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  filteredPersons = taulukko.filter((person) => person.id !== id);
-
-  res.status(204).end();
-}); */
-app.delete("/api/persons/:id", (req, response, next) => {
+// Delete request
+app.delete("/api/persons/:id", (req, res, next) => {
   console.log("Poistettavan id: " + req.params.id);
   Person.findByIdAndRemove(req.params.id)
-    .then((result) => {
+    .then(() => {
       res.status(204).end();
     })
-    .catch((error) => console.log(error));
+    .catch((error) => next("Error in delete" + error));
 });
 // Post person
 
-app.post("/api/persons", (req, res) => {
-  console.log("post request");
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (body.name === undefined) {
     return res.status(400).json({ error: "name missing" });
   }
   if (body.number === undefined) {
-    return res.status(400).json({ error: "name missing" });
+    return res.status(400).json({ error: "number missing" });
   }
 
   const person = new Person({
@@ -103,7 +106,25 @@ app.post("/api/persons", (req, res) => {
     .then((savedPerson) => {
       res.json(savedPerson);
     })
-    .catch((error) => console.log(error));
+    .catch((error) => next("Error in post" + error));
+});
+// put
+
+app.put("/api/persons/:id", (req, res, next) => {
+  console.log("put request body: " + req.body);
+  const body = req.body;
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+  console.log("person: " + person.name + " " + person.number);
+  Person.findByIdAndUpdate(req.body.id, person, { new: true })
+    .then((updatedPerson) => {
+      console.log("pitäisi toimia: " + updatedPerson);
+      res.json(updatedPerson);
+    })
+    .catch((error) => console.log("jotain meni vikaan " + error));
 });
 // Returns infopage
 app.get("/info", (req, res) => {
@@ -112,6 +133,7 @@ app.get("/info", (req, res) => {
     `Phonebook has info for ${taulukko.length} people <br><br> ${dateNow}`
   );
 });
+app.use(errorHandler);
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT);

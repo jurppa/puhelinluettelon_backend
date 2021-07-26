@@ -1,8 +1,8 @@
-const { response } = require("express");
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
 app.use(express.json());
+require("dotenv").config();
 
 const cors = require("cors");
 app.use(cors());
@@ -10,7 +10,7 @@ app.use(
   morgan(":method :url :status :res[content-length] :response-time ms :body")
 );
 app.use(express.static("build"));
-
+const Person = require("./models/person");
 morgan.token("body", function (req, res) {
   console.log(req.method);
   if (req.method !== "POST") {
@@ -45,7 +45,12 @@ let taulukko = [
 ];
 // Returns all persons
 app.get("/api/persons", (req, res) => {
-  res.send(taulukko);
+  Person.find({})
+    .then((persons) => {
+      console.log(persons);
+      res.json(persons);
+    })
+    .catch((error) => console.log(error));
 });
 // Get with id
 app.get("/api/persons/:id", (req, res) => {
@@ -68,27 +73,28 @@ app.delete("/api/persons/:id", (req, res) => {
   res.status(204).end();
 });
 // Post person
-app.post("/api/persons/", (req, res) => {
-  const newId = Math.random() * 9999;
 
-  if (!req.body.name || !req.body.number) {
-    console.log(req.body);
+app.post("/api/persons", (req, res) => {
+  const body = req.body;
 
-    console.log("errori");
-    return res
-      .status(400)
-      .json({ error: "Name or number missing from post request" });
+  if (body.name === undefined) {
+    return res.status(400).json({ error: "name missing" });
   }
-  if (taulukko.some((a) => a.name.includes(req.body.name))) {
-    return res.status(400).json({ error: "name already in phonebook" });
+  if (body.number === undefined) {
+    return res.status(400).json({ error: "name missing" });
   }
-  const person = req.body;
-  person.id = newId;
-  taulukko = taulukko.concat(person);
-  console.log(taulukko.length);
-  res.json(person);
 
-  //
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  });
+
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => console.log(error));
 });
 // Returns infopage
 app.get("/info", (req, res) => {

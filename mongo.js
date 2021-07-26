@@ -1,19 +1,20 @@
-const mongoose = require("mongoose");
+/*const mongoose = require("mongoose");
 const password = process.argv[2];
 const url = `mongodb+srv://fullstack:${password}@cluster0.0es8j.mongodb.net/phonebookdb?retryWrites=true&w=majority`;
+const Person = require("./models/person");
 mongoose.connect(url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
-  useCreateIndex: true,
+  useCreateIndex: true, 
 });
-const phonebookSchema = new mongoose.Schema({
+/* const phonebookSchema = new mongoose.Schema({
   name: String,
   number: Number,
-});
-const Person = mongoose.model("Person", phonebookSchema);
+}); */
+//const Person = mongoose.model("Person", phonebookSchema);
 // Save person to mongodb
-if (process.argv.length === 5) {
+/*if (process.argv.length === 5) {
   const person = new Person({
     name: process.argv[3],
     number: process.argv[4],
@@ -33,3 +34,4 @@ if (process.argv.length === 3) {
     mongoose.connection.close();
   });
 }
+*/

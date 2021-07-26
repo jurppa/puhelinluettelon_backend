@@ -2,8 +2,8 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-  "name":"dfffddf asddasdsadsadsa",
-   "number": 124124421
+  "name":"Testi Testinen IV",
+  "number": 777
    
 
 }

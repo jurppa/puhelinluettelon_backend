@@ -1,6 +1,6 @@
 /*const mongoose = require("mongoose");
 const password = process.argv[2];
-const url = `mongodb+srv://fullstack:${password}@cluster0.0es8j.mongodb.net/phonebookdb?retryWrites=true&w=majority`;
+const url = `database url here`;
 const Person = require("./models/person");
 mongoose.connect(url, {
   useNewUrlParser: true,
